@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
     const navigate = useNavigate();
-    const { setAuthUser } = useAuth();
+    const { authUser, setAuthUser } = useAuth();
     const [userInput, setUserInput] = useState({});
     const [loading, setLoading] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -66,9 +66,9 @@ const Profile = () => {
                 toast.success('Profile picture updated!');
                 const newPic = response.data.profilepic;
                 setUserInput((prev) => ({ ...prev, profilepic: newPic }));
-                setAuthUser((prev) => ({ ...prev, profilepic: newPic, _cacheBust: Date.now() }));
-                const stored = JSON.parse(localStorage.getItem('chatapp') || '{}');
-                localStorage.setItem('chatapp', JSON.stringify({ ...stored, profilepic: newPic }));
+                const updatedUser = { ...authUser, profilepic: newPic, _cacheBust: Date.now() };
+                setAuthUser(updatedUser);
+                localStorage.setItem('chatapp', JSON.stringify(updatedUser));
             }
         } catch {
             toast.error('Failed to upload profile picture');
