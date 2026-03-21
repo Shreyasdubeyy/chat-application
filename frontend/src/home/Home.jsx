@@ -1,51 +1,44 @@
-
-
-import React, { useEffect, useState } from 'react';
-
+import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import MessageContainer from './components/MessageContainer';
-import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
-  const [selectedUser , setSelectedUser] = useState(null);
-  const [isSidebarVisible , setIsSidebarVisible]= useState(true);
+    const handleUserSelect = (user) => {
+        setSelectedUser(user);
+        setIsSidebarVisible(false);
+    };
 
-  const handleUserSelect=(user)=>{
-    setSelectedUser(user);
-    setIsSidebarVisible(false);
-  }
-  const handleShowSidebar=()=>{
-    setIsSidebarVisible(true);
-    setSelectedUser(null);
-  }
-  return (
+    const handleShowSidebar = () => {
+        setIsSidebarVisible(true);
+        setSelectedUser(null);
+    };
 
-    <div className='flex justify-between min-w-full
-     md:min-w-[550px] md:max-w-[85%]
-      px-2 h-[97%] md:h-full
-      rounded-xl shadow-lg
-       bg-gray-400 bg-clip-padding
-        backdrop-filter backdrop-blur-lg 
-        bg-opacity-0'
-        >
-          {/* <div>
-            <Sidebar/>
-          </div>
-          <div>
-            <MessageContainer/>
-          </div> */}
-      <div className={`w-full py-0.1 md:flex ${isSidebarVisible ? '' : 'hidden'}`}>
-      <Sidebar onSelectUser={handleUserSelect}/>
-      </div>
-      <div className={`divider divider-horizontal px-3 md:flex
-         ${isSidebarVisible ? '' : 'hidden'} ${selectedUser ? 'block' : 'hidden'}`}></div>
-      <div className={`flex-auto ${selectedUser ? '' : 'hidden md:flex'} bg-gray-200}`}>
-      <MessageContainer onBackUser={handleShowSidebar}/>
-      </div>
-    </div>
-  );
+    return (
+        <div className="flex-1 flex overflow-hidden sm:p-4 md:p-6" style={{ minHeight: 0 }}>
+            <div className="flex-1 flex w-full max-w-7xl mx-auto min-h-0 sm:gap-4">
+                {/* Sidebar — full screen on mobile when visible */}
+                <div className={`
+                    ${isSidebarVisible ? 'flex' : 'hidden'}
+                    md:flex flex-col
+                    w-full md:w-[320px] lg:w-[300px] xl:w-[340px]
+                    flex-shrink-0 min-h-0
+                `}>
+                    <Sidebar onSelectUser={handleUserSelect} />
+                </div>
+
+                {/* Message Container — full screen on mobile when selected */}
+                <div className={`
+                    ${selectedUser ? 'flex' : 'hidden md:flex'}
+                    flex-col flex-1 min-h-0 min-w-0
+                `}>
+                    <MessageContainer onBackUser={handleShowSidebar} />
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default Home;
-

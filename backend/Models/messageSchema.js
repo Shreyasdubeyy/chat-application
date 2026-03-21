@@ -13,12 +13,20 @@ const messageSchema = mongoose.Schema({
     },
     message:{
         type:String,
-        required:true
+        required:false
+    },
+    messageType: {
+        type: String,
+        enum: ['text', 'image'],
+        default: 'text'
+    },
+    imageUrl: {
+        type: String,
+        required: false
     },
     conversationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Conversation',
-        default:[]
+        ref: 'Conversation'
     },
 },{timestamps:true})
 

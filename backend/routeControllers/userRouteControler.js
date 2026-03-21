@@ -4,20 +4,18 @@ import jwtToken from "../utils/jwtWebToken.js";
 export const userRegister=async(req,res)=>{
     try {
         const { fullname , username , email , gender , password , profilepic } = req.body;
+        
+        if (password.length < 6) {
+            return res.status(400).send({success:false,message:"Password must be at least 6 characters long"});
+        }
+        
         const user = await User.findOne({
             $or: [{ username }, { email }]
         });
+
+        if(user) return res.status(400).send({success:false,message:"Username or Email Already Registered"})
         
-
-        if(user) return res.status(500).send({success:false,message:"Username or Email Already Registered"})
-        
-        // else
-        const hashPassword = bcryptjs.hashSync(password,10) //paswword to be hashed and salt round meaing secure(10 is considered secured)
-
-        const profileBoy = profilepic || `https://avatar.iran.liara.run/public/boy?username=${username}`;
-        const profileGirl = profilepic || `https://avatar.iran.liara.run/public/girl?username=${username}`;
-
-        // save to database
+        const hashPassword = bcryptjs.hashSync(password,10);
 
         const newUser = new User({
             fullname,
@@ -25,30 +23,26 @@ export const userRegister=async(req,res)=>{
             email,
             password:hashPassword,
             gender,
-            profilepic: gender==="male" ? profileBoy : profileGirl
+            profilepic: profilepic || ""
         })
 
         if(newUser){
             await newUser.save();
-//jwt auth
             jwtToken(newUser._id,res)
-
+            return res.status(201).send({
+                _id: newUser._id,
+                fullname: newUser.fullname,
+                username: newUser.username,
+                profilepic: newUser.profilepic,
+                email: newUser.email
+            })
+        } else {
+            return res.status(500).send({success:false,message:"Invalid user data"})
         }
-        else{
-            res.status(500).send({success:false,message:"Invalid user data"})
-        }
-
-        res.status(201).send({
-            _id: newUser._id,
-            fullname: newUser.fullname,
-            username: newUser.username,
-            profilepic: newUser.profilepic,
-            email: newUser.email
-        })
 
     } catch (error) {
-        res.status(500).send({success:false,message:error})
-        console.log(error);
+        console.error("Error in userRegister:", error);
+        res.status(500).send({success:false,message:"Server error during registration"})
     }
 }
 
@@ -58,15 +52,15 @@ export const userLogin=async(req,res)=>{
         const user = await User.findOne({email})
 
         if(!user){
-            return  res.status(500).send({success:false,message: "Email is not registered"})
+            return res.status(401).send({success:false,message: "Invalid email or password"})
         }
         const comparePass=bcryptjs.compareSync(password,user.password || "")
 
         if(!comparePass){
-            return  res.status(500).send({success:false,message:"Password doesnt match"})
+            return res.status(401).send({success:false,message:"Invalid email or password"})
         }
 
-        jwtToken(user._id,res) //created token
+        jwtToken(user._id,res)
 
         res.status(200).send({
             _id: user._id,
@@ -78,8 +72,8 @@ export const userLogin=async(req,res)=>{
         })
 
     } catch (error) {
-        res.status(500).send({success:false,message:error})
-        console.log(error); 
+        console.error("Error in userLogin:", error);
+        res.status(500).send({success:false,message:"Server error during login"})
     }
 }
 
@@ -90,102 +84,7 @@ export const userLogout=async(req,res)=>{
         })
         res.status(200).send({message:"User logout"})
     } catch (error) {
-        res.status(500).send({success:false,message:error})
-        console.log(error); 
+        console.error("Error in userLogout:", error);
+        res.status(500).send({success:false,message:"Server error during logout"})
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import User from "../Models/userModels.js";
-// import bcryptjs from "bcryptjs"
-// export const userRegister = async (req, res) => {
-//     try {
-//         console.log("Request Body:", req.body); // Debugging
-
-//         const { fullname, username, email, gender, password, profilepic } = req.body;
-
-//         // Validate required fields
-//         if (!fullname || !username || !email || !password || !gender) {
-//             return res.status(400).send({ 
-//                 success: false, 
-//                 message: "All fields are required: fullname, username, email, password, and gender." 
-//             });
-//         }
-
-//         // Check if the user already exists
-//         const user = await User.findOne({ username, email });
-
-//         if (user) {
-//             return res.status(400).send({ 
-//                 success: false, 
-//                 message: "Username or Email already exists" 
-//             });
-//         }
-
-//         // Hash the password
-//         const hashPassword = bcryptjs.hashSync(password, 10); // 10 is the salt round
-
-//         // Determine profile picture
-//         const profileBoy = profilepic || `https://avatar.iran.liara.run/public/boy?username=${username}`;
-//         const profileGirl = profilepic || `https://avatar.iran.liara.run/public/girl?username=${username}`;
-//         const profile = gender === "male" ? profileBoy : profileGirl;
-
-//         // Save to database
-//         const newUser = new User({
-//             fullname,
-//             username,
-//             email,
-//             password: hashPassword,
-//             gender,
-//             profilepic:  gender==="male" ? profileBoy : profileGirl,
-//         });
-
-//         await newUser.save();
-
-//         // Send response
-//         res.status(201).send({
-//             _id: newUser._id,
-//             fullname: newUser.fullname,
-//             username: newUser.username,
-//             profilepic: newUser.profilepic,
-//             email: newUser.email,
-//         });
-
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send({ success: false, message: "An error occurred. Please try again." });
-//     }
-// };

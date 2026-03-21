@@ -1,4 +1,24 @@
 node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Env files
 .env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build
+frontend/dist/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Locks (optional — remove if you want to commit them)
 package-lock.json

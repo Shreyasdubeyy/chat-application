@@ -5,7 +5,7 @@ const userBlockSchema = mongoose.Schema(
   {
     blocker: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Referring to the User model
+      ref: 'User',
       required: true,
     },
     blocked: {
@@ -16,6 +16,8 @@ const userBlockSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userBlockSchema.index({ blocker: 1, blocked: 1 }, { unique: true });
 
 const UserBlock = mongoose.model('UserBlock', userBlockSchema);
 

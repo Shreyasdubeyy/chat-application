@@ -14,18 +14,17 @@ function App() {
 
   return (
     <>
-    <div className="p-2 w-screen h-screen flex items-center justify-center">
-      <Routes>
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/register" element={<Register/>}/>
-        <Route path="/profile" element={<Profile/>} />
-        <Route element ={<VerifyUser/>}>
-        <Route path="/" element={<Home/>}/>
-        </Route>
-      </Routes>
+      <div className="flex flex-col w-full h-full">
+        <Routes>
+          <Route path="/login" element={<Login/>}/>
+          <Route path="/register" element={<Register/>}/>
+          <Route path="/profile" element={<Profile/>} />
+          <Route element={<VerifyUser/>}>
+            <Route path="/" element={<Home/>}/>
+          </Route>
+        </Routes>
       </div>
-    <ToastContainer/>
-    
+      <ToastContainer/>
     </>
   )
 }

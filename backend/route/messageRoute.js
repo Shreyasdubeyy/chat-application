@@ -1,10 +1,11 @@
 import express from "express"
 import {  getMessages, sendMessage } from "../routeControllers/messageRouteController.js";
 import isLogin from "../middleware/isLogin.js";
+import upload from "../middleware/upload.js";
 
 const router=express.Router();
 
-router.post("/send/:id",isLogin,sendMessage)
-router.get("/:id",isLogin,getMessages)
+router.post("/send/:id", isLogin, upload.single('image'), sendMessage)
+router.get("/:id", isLogin, getMessages)
 
 export default router

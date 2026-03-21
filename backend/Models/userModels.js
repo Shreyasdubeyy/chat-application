@@ -27,8 +27,13 @@ const userSchema=mongoose.Schema({
     },
     profilepic:{
         type: String,
-        required:true,
-       default:""
+        required:false,
+        default:""
+    },
+    about:{
+        type: String,
+        default: "Hey there! I am using LinkUp.",
+        maxlength: 150
     }
 },{timestamps:true}) //timestamps tells about current timestamp
 

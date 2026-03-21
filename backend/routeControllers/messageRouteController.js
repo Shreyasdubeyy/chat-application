@@ -1,11 +1,12 @@
 import Conversation from "../Models/conversationModel.js";
 import Message from "../Models/messageSchema.js";
-import UserBlock from "../Models/UserBlockSchema.js"; // Import the UserBlock model
+import UserBlock from "../Models/UserBlockSchema.js";
 import { getReciverSocketId, io } from "../Socket/socket.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const sendMessage = async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages, messageType } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
@@ -25,10 +26,33 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    let imageUrl = null;
+
+    // Handle image upload if file is present
+    if (req.file) {
+      try {
+        // Upload to Cloudinary using buffer
+        const b64 = Buffer.from(req.file.buffer).toString('base64');
+        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+        
+        const uploadResult = await cloudinary.uploader.upload(dataURI, {
+          folder: 'linkup/messages',
+          resource_type: 'auto'
+        });
+        
+        imageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ success: false, message: 'Failed to upload image' });
+      }
+    }
+
     const newMessage = new Message({
       senderId,
       receiverId,
-      message: messages,
+      message: messages || '',
+      messageType: imageUrl ? 'image' : 'text',
+      imageUrl: imageUrl,
       conversationId: chats._id,
     });
 
@@ -38,23 +62,20 @@ export const sendMessage = async (req, res) => {
 
     await Promise.all([chats.save(), newMessage.save()]);
 
-    // Send message via socket to receiver if they are online
     const receiverSocketId = getReciverSocketId(receiverId);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("newMessage", newMessage.toObject());
     }
 
-    res.status(201).send(newMessage);
+    res.status(201).send(newMessage.toObject());
   } catch (error) {
     res.status(500).send({
       success: false,
-      message: error,
+      message: error.message,
     });
     console.log(`Error in sendMessage ${error}`);
   }
 };
-
-
 
 export const getMessages=async(req,res)=>{
 try {

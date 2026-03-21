@@ -28,47 +28,39 @@
 //     console.log(`Working at ${PORT}`)
 // })
 import dotenv from 'dotenv'
-
 import express from "express"
+import cors from 'cors'
 import dbConnect from "./DB/dbConnect.js";
 import authRouter from  './route/authUser.js'
 import messageRouter from './route/messageRoute.js'
 import userRouter from './route/userRoute.js'
 import cookieParser from "cookie-parser";
 import path from "path";
-
 import {app , server} from './Socket/socket.js'
+import { fileURLToPath } from 'url';
 
-const __dirname = path.resolve(process.cwd(), 'backend', '.env');
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Load environment variables FIRST
+dotenv.config({ path: path.join(__dirname, '.env') });
 
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
+const missing = requiredEnvVars.filter((v) => !process.env[v]);
+if (missing.length) {
+    console.error(`❌ Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+}
+console.log('✅ Environment variables loaded');
 
-// Try different possible paths
-// const pathsToTry = [
-//     path.resolve(__dirname, '.env'),
-//     path.resolve(process.cwd(), '.env'),
-//     path.resolve(process.cwd(), 'backend', '.env'),
-// ];
+const allowedOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',')
+    : ['http://localhost:5173'];
 
-// for (const envPath of pathsToTry) {
-//     console.log('Trying path:', envPath);
-//     const result = dotenv.config({ path: envPath });
-//     if (!result.error) {
-//         console.log('Successfully loaded from:', envPath);
-//         break;
-//     }
-// }
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-
-// if (!process.env.JWT_SECRET) {
-//     process.env.JWT_SECRET = 'shreyasdubey';
-//     console.log('Using hardcoded JWT_SECRET');
-// }
-
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
+}));
 
 app.use(express.json());
 app.use(cookieParser())
@@ -77,13 +69,7 @@ app.use('/api/auth',authRouter)
 app.use('/api/message',messageRouter)
 app.use('/api/user',userRouter)
 
-app.use(express.static(path.join(__dirname,"/frontend/dist")))
-
-app.get("*",(req,res)=>{
-    res.sendFile(path.join(__dirname,"frontend","dist","index.html"))
-})
-
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 5000
 
 server.listen(PORT,()=>{
     dbConnect();

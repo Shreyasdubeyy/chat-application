@@ -1,32 +1,25 @@
 import Conversation from "../Models/conversationModel.js";
 import User from "../Models/userModels.js"
-
-
-
+import cloudinary from "../utils/cloudinary.js";
 
 export const getUserBySearch=async(req,res)=>{
     try {
         const search=req.query.search || "";
         const currentUserID=req.user._id;
+        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-        // mongo db keys $ 
         const user= await User.find({
-        //    mongo db query $and if 2 queries has to be used 
            $and:[
             {
-                // $or for 2 parameters username or fullname
                 $or:[
-                    {username:{$regex:".*"+search+".*",$options:"i"}},
-                    {fullname:{$regex:".*"+search+".*",$options:"i"}}
-                    // $options for case insenstive
+                    {username:{$regex:".*"+escapedSearch+".*",$options:"i"}},
+                    {fullname:{$regex:".*"+escapedSearch+".*",$options:"i"}}
                 ]
             },{
-                // to not show self id 
                 _id:{$ne:currentUserID}
             }
            ]
         }).select("-password").select("email") 
-        // send everything except password and email 
 
         res.status(200).send(user)
     } catch (error) {
@@ -43,7 +36,6 @@ export const getCurrentChatters = async (req, res) => {
             return res.status(400).send({ success: false, message: "User not authenticated" });
         }
 
-        // Fetch conversations involving the current user
         const currentChatters = await Conversation.find({
             participants: currentUserID
         }).sort({ updatedAt: -1 });
@@ -52,18 +44,12 @@ export const getCurrentChatters = async (req, res) => {
             return res.status(200).send([]);
         }
 
-        // Extract participant IDs excluding the current user
         const participantsIDs = currentChatters.flatMap((conversation) => 
             conversation.participants.filter((id) => id.toString() !== currentUserID.toString())
         );
 
-        // Debugging output
-        // console.log("Participants IDs:", participantsIDs);
-
-        // Remove duplicates using a Set
         const uniqueParticipantIDs = [...new Set(participantsIDs)];
 
-        // Fetch users corresponding to participant IDs
         const users = await User.find({ _id: { $in: uniqueParticipantIDs } }).select(
             "fullname username profilepic"
         );
@@ -75,20 +61,49 @@ export const getCurrentChatters = async (req, res) => {
     }
 };
 
+// Upload profile picture
+export const uploadProfilePicture = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send({ success: false, message: 'No file uploaded' });
+        }
 
-// profile
+        const user = req.user;
+
+        // Upload to Cloudinary
+        const b64 = Buffer.from(req.file.buffer).toString('base64');
+        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+        
+        const uploadResult = await cloudinary.uploader.upload(dataURI, {
+            folder: 'linkup/profiles',
+            resource_type: 'auto'
+        });
+
+        // Update user profile picture
+        user.profilepic = uploadResult.secure_url;
+        await user.save();
+
+        res.status(200).send({
+            success: true,
+            message: 'Profile picture updated successfully',
+            profilepic: uploadResult.secure_url
+        });
+    } catch (error) {
+        console.error('Error uploading profile picture:', error);
+        res.status(500).send({ success: false, message: 'Error uploading profile picture' });
+    }
+};
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const { fullname, username, email, gender, profilepic } = req.body;
+        const { fullname, username, email, gender, about } = req.body;
         const user = req.user; 
 
-        // Update the user profile data
         user.fullname = fullname || user.fullname;
         user.username = username || user.username;
         user.email = email || user.email;
         user.gender = gender || user.gender;
-        user.profilepic = profilepic || user.profilepic;
+        if (about !== undefined) user.about = about;
 
         await user.save();
 
@@ -102,17 +117,14 @@ export const updateUserProfile = async (req, res) => {
     }
 };
 
-//get
 export const getUserProfile = async (req, res) => {
     try {
         const user = req.user; 
 
-        
         if (!user) {
             return res.status(404).send({ success: false, message: 'User not found' });
         }
 
-        
         res.status(200).send({
             success: true,
             user: {
@@ -120,7 +132,9 @@ export const getUserProfile = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 gender: user.gender,
-                profilepic: user.profilepic
+                profilepic: user.profilepic,
+                about: user.about,
+                createdAt: user.createdAt
             },
         });
     } catch (error) {
@@ -129,8 +143,33 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
-//deleting user
-// Delete user account
+export const getPublicUserProfile = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const user = await User.findById(userId).select('-password -email');
+
+        if (!user) {
+            return res.status(404).send({ success: false, message: 'User not found' });
+        }
+
+        res.status(200).send({
+            success: true,
+            user: {
+                _id: user._id,
+                fullname: user.fullname,
+                username: user.username,
+                gender: user.gender,
+                profilepic: user.profilepic,
+                about: user.about,
+                createdAt: user.createdAt
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ success: false, message: 'Error fetching user profile' });
+    }
+};
+
 export const deleteUserAccount = async (req, res) => {
     try {
         const user = req.user; 
@@ -139,10 +178,7 @@ export const deleteUserAccount = async (req, res) => {
             return res.status(404).send({ success: false, message: "User not found" });
         }
 
-        
         await Conversation.deleteMany({ participants: user._id });
-
-        
         await User.findByIdAndDelete(user._id);
 
         res.status(200).send({
