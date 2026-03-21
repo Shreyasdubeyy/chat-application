@@ -64,7 +64,11 @@ const Profile = () => {
             });
             if (response.data.success) {
                 toast.success('Profile picture updated!');
-                setUserInput((prev) => ({ ...prev, profilepic: response.data.profilepic }));
+                const newPic = response.data.profilepic;
+                setUserInput((prev) => ({ ...prev, profilepic: newPic }));
+                setAuthUser((prev) => ({ ...prev, profilepic: newPic }));
+                const stored = JSON.parse(localStorage.getItem('chatapp') || '{}');
+                localStorage.setItem('chatapp', JSON.stringify({ ...stored, profilepic: newPic }));
             }
         } catch {
             toast.error('Failed to upload profile picture');

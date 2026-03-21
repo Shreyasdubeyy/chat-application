@@ -64,7 +64,7 @@ const MessageContainer = ({ onBackUser }) => {
         setTimeout(() => {
             lastMessageRef?.current?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
-    }, [messages]);
+    }, [messages, selectedConversation]);
 
     useEffect(() => {
         const getMessages = async () => {
