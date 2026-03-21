@@ -15,8 +15,10 @@ const UserProfileModal = ({ user, onClose, onMessage, isSelf = false }) => {
         const fetchProfile = async () => {
             setLoading(true);
             try {
-                const res = await axios.get(`/api/user/view/${user._id}`);
-                if (res.data.success) setProfile(res.data.user);
+                const res = isSelf
+                    ? await axios.get('/api/user/profile')
+                    : await axios.get(`/api/user/view/${user._id}`);
+                if (res.data.success) setProfile(isSelf ? res.data.user : res.data.user);
             } catch (err) {
                 console.error('Error fetching user profile:', err);
             } finally {
@@ -24,7 +26,7 @@ const UserProfileModal = ({ user, onClose, onMessage, isSelf = false }) => {
             }
         };
         fetchProfile();
-    }, [user?._id]);
+    }, [user?._id, isSelf]);
 
     const getInitials = (name) => {
         if (!name) return '?';
