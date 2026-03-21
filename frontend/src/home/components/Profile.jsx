@@ -66,7 +66,7 @@ const Profile = () => {
                 toast.success('Profile picture updated!');
                 const newPic = response.data.profilepic;
                 setUserInput((prev) => ({ ...prev, profilepic: newPic }));
-                setAuthUser((prev) => ({ ...prev, profilepic: newPic }));
+                setAuthUser((prev) => ({ ...prev, profilepic: newPic, _cacheBust: Date.now() }));
                 const stored = JSON.parse(localStorage.getItem('chatapp') || '{}');
                 localStorage.setItem('chatapp', JSON.stringify({ ...stored, profilepic: newPic }));
             }

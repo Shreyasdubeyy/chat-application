@@ -166,7 +166,7 @@ const Sidebar = ({ onSelectUser }) => {
                             title="My Profile"
                         >
                             <div className="w-8 h-8 rounded-full overflow-hidden">
-                                <img src={authUser.profilepic} alt={authUser.username} className="w-full h-full object-cover" />
+                                <img src={authUser.profilepic ? `${authUser.profilepic}?t=${authUser._cacheBust || 0}` : authUser.profilepic} alt={authUser.username} className="w-full h-full object-cover" />
                             </div>
                         </button>
                         <button
