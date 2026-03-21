@@ -23,6 +23,9 @@ function App() {
             <Route path="/" element={<Home/>}/>
           </Route>
         </Routes>
+        <footer className="w-full text-center py-2 text-xs text-slate-500 bg-slate-950 border-t border-white/5 flex-shrink-0">
+          Developed by <span className="font-semibold text-purple-400">Shreyas Dubey</span>
+        </footer>
       </div>
       <ToastContainer/>
     </>

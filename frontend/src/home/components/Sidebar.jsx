@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import userConversation from '../../Zustand/useConversation.js';
 import { useSocketContext } from '../../context/socketContext.jsx';
+import UserProfileModal from './UserProfileModal.jsx';
 
 const Sidebar = ({ onSelectUser }) => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Sidebar = ({ onSelectUser }) => {
     const [loading, setLoading] = useState(false);
     const [selectedUserId, setSetSelectedUserId] = useState(null);
     const [newMessage, setNewMessage] = useState(null);
+    const [showSelfProfile, setShowSelfProfile] = useState(false);
     const { messages, selectedConversation, setSelectedConversation } = userConversation();
     const { onlineUser, socket } = useSocketContext();
 
@@ -159,9 +161,18 @@ const Sidebar = ({ onSelectUser }) => {
                     <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Messages</h2>
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => setShowSelfProfile(true)}
+                            className="p-0.5 rounded-full ring-2 ring-purple-400/50 hover:ring-purple-500 transition-all"
+                            title="My Profile"
+                        >
+                            <div className="w-8 h-8 rounded-full overflow-hidden">
+                                <img src={authUser.profilepic} alt={authUser.username} className="w-full h-full object-cover" />
+                            </div>
+                        </button>
+                        <button
                             onClick={() => navigate('/profile')}
                             className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            title="Profile"
+                            title="Edit Profile"
                         >
                             <FiUser className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                         </button>
@@ -235,6 +246,15 @@ const Sidebar = ({ onSelectUser }) => {
                     </>
                 )}
             </div>
+
+            {showSelfProfile && (
+                <UserProfileModal
+                    user={authUser}
+                    onClose={() => setShowSelfProfile(false)}
+                    onMessage={() => setShowSelfProfile(false)}
+                    isSelf
+                />
+            )}
         </div>
     );
 };

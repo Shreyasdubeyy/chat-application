@@ -17,6 +17,8 @@ const Profile = () => {
     const [activeField, setActiveField] = useState(null);
     const [mounted, setMounted] = useState(false);
 
+    const [savedInput, setSavedInput] = useState({});
+
     useEffect(() => {
         setTimeout(() => setMounted(true), 100);
         const fetchProfile = async () => {
@@ -25,6 +27,7 @@ const Profile = () => {
                 const response = await axios.get('/api/user/profile');
                 if (response.data.success) {
                     setUserInput(response.data.user);
+                    setSavedInput(response.data.user);
                     setPreviewImage(response.data.user.profilepic);
                 } else {
                     toast.error('Failed to fetch profile.');
@@ -77,6 +80,7 @@ const Profile = () => {
             const response = await axios.put('/api/user/profile', userInput);
             if (!response.data.success) return toast.error(response.data.message);
             toast.success('Profile updated!');
+            setSavedInput(userInput);
             setIsEditing(false);
         } catch {
             toast.error('An error occurred. Please try again.');
@@ -240,7 +244,8 @@ const Profile = () => {
                                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10">
                                     <span className="text-sm font-semibold text-white">Account Information</span>
                                     <button
-                                        onClick={() => setIsEditing(!isEditing)}
+                                        type="button"
+                                        onClick={() => { setIsEditing(!isEditing); if (isEditing) setUserInput(savedInput); }}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                                             isEditing
                                                 ? 'bg-white/10 text-slate-300 hover:bg-white/15'
@@ -375,7 +380,7 @@ const Profile = () => {
                                 </div>
                             </div>
 
-                            <p className="text-center text-slate-600 text-xs pb-2">© 2024 LinkUp. All rights reserved.</p>
+                            <p className="text-center text-slate-600 text-xs pb-2">LinkUp</p>
                         </div>
                     </div>
                 </div>

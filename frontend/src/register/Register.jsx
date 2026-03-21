@@ -181,7 +181,7 @@ const Register = () => {
                         </Link>
                     </p>
 
-                    <p className="text-center text-xs text-slate-400 mt-6">© 2024 LinkUp. All rights reserved.</p>
+                    <p className="text-center text-xs text-slate-400 mt-6">LinkUp</p>
                 </div>
             </div>
         </div>

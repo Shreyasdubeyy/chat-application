@@ -23,6 +23,17 @@ const MessageContainer = ({ onBackUser }) => {
     const [viewImage, setViewImage] = useState(null);
     const [showUserProfile, setShowUserProfile] = useState(false);
     const fileInputRef = useRef();
+    const menuRef = useRef();
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setShowMenu(false);
+            }
+        };
+        if (showMenu) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMenu]);
 
     useEffect(() => {
         const handler = (newMessage) => {
@@ -224,7 +235,7 @@ const MessageContainer = ({ onBackUser }) => {
                     </div>
                 </div>
 
-                <div className="relative">
+                <div className="relative" ref={menuRef}>
                     <button
                         onClick={() => setShowMenu(!showMenu)}
                         className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -312,7 +323,9 @@ const MessageContainer = ({ onBackUser }) => {
                                         </div>
                                     )}
                                     <span className="text-xs text-slate-400 px-1">
-                                        {new Date(message?.createdAt).toLocaleTimeString('en-US', {
+                                        {new Date(message?.createdAt).toLocaleString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
                                             hour: '2-digit',
                                             minute: '2-digit',
                                         })}

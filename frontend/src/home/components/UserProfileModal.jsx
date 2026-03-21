@@ -3,10 +3,11 @@ import axios from '../../utils/axiosInstance.js';
 import { FiX, FiUser, FiMessageCircle, FiCalendar } from 'react-icons/fi';
 import { useSocketContext } from '../../context/socketContext';
 
-const UserProfileModal = ({ user, onClose, onMessage }) => {
+const UserProfileModal = ({ user, onClose, onMessage, isSelf = false }) => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const { onlineUser } = useSocketContext();
+    const [viewImage, setViewImage] = useState(false);
     const isOnline = onlineUser.includes(user?._id);
 
     useEffect(() => {
@@ -72,7 +73,7 @@ const UserProfileModal = ({ user, onClose, onMessage }) => {
                             <div className="absolute -bottom-14 left-1/2 -translate-x-1/2">
                                 <div className="relative">
                                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 blur-md opacity-70 scale-110"></div>
-                                    <div className="relative w-28 h-28 rounded-full overflow-hidden ring-4 ring-slate-900">
+                                    <div className="relative w-28 h-28 rounded-full overflow-hidden ring-4 ring-slate-900 cursor-pointer" onClick={() => profile?.profilepic && setViewImage(true)}>
                                         {profile?.profilepic ? (
                                             <img src={profile.profilepic} alt={profile.fullname} className="w-full h-full object-cover" />
                                         ) : (
@@ -110,13 +111,24 @@ const UserProfileModal = ({ user, onClose, onMessage }) => {
 
                             {/* About */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2 mb-3">
                                     <FiUser className="w-4 h-4 text-purple-400" />
                                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">About</span>
                                 </div>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    {profile?.about || 'Hey there! I am using LinkUp.'}
-                                </p>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex gap-2">
+                                        <span className="text-slate-500 w-20 flex-shrink-0">Username</span>
+                                        <span className="text-slate-300">@{profile?.username}</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <span className="text-slate-500 w-20 flex-shrink-0">Gender</span>
+                                        <span className="text-slate-300 capitalize">{profile?.gender || 'Not set'}</span>
+                                    </div>
+                                    <div className="flex gap-2 pt-2 border-t border-white/5">
+                                        <span className="text-slate-500 w-20 flex-shrink-0">Bio</span>
+                                        <span className="text-slate-300 leading-relaxed">{profile?.about || 'Hey there! I am using LinkUp.'}</span>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Joined Date */}
@@ -130,7 +142,8 @@ const UserProfileModal = ({ user, onClose, onMessage }) => {
                                 </div>
                             )}
 
-                            {/* Message Button */}
+                            {/* Message Button — hidden when viewing own profile */}
+                            {!isSelf && (
                             <button
                                 onClick={() => { onMessage(user); onClose(); }}
                                 className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30 hover:shadow-purple-900/50"
@@ -138,6 +151,7 @@ const UserProfileModal = ({ user, onClose, onMessage }) => {
                                 <FiMessageCircle className="w-5 h-5" />
                                 Send Message
                             </button>
+                            )}
                         </div>
                     </>
                 )}
@@ -149,6 +163,27 @@ const UserProfileModal = ({ user, onClose, onMessage }) => {
                     to { transform: translateX(0); opacity: 1; }
                 }
             `}</style>
+
+            {/* Fullscreen image viewer */}
+            {viewImage && profile?.profilepic && (
+                <div
+                    className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
+                    onClick={() => setViewImage(false)}
+                >
+                    <button
+                        onClick={() => setViewImage(false)}
+                        className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                    >
+                        <FiX className="w-5 h-5" />
+                    </button>
+                    <img
+                        src={profile.profilepic}
+                        alt={profile.fullname}
+                        className="max-w-full max-h-full object-contain rounded-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </>
     );
 };
