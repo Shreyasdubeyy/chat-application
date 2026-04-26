@@ -22,9 +22,8 @@ Thumbs.db
 
 # Locks (optional — remove if you want to commit them)
 package-lock.json
-
-BEFORE_AFTER.md
-CHANGELOG.md
-FILE_STRUCTURE.md
-QUIICK_START.md
-UI_REDESIGN.md
+./BEFORE_AFTER.md
+./CHANGELOG.md
+./FILE_STRUCTURE.md
+./QUIICK_START.md
+./UI_REDESIGN.md
